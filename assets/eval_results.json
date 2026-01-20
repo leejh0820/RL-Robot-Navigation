@@ -1,0 +1,38 @@
+{
+  "episodes": 200,
+  "seed": 123,
+  "results": {
+    "Easy (n_obs=8)": {
+      "ppo": {
+        "episodes": 200,
+        "success_rate": 0.9,
+        "collision_rate": 0.0,
+        "avg_steps": 61.905,
+        "avg_return": 10.92280638241916
+      },
+      "baseline": {
+        "episodes": 200,
+        "success_rate": 0.005,
+        "collision_rate": 0.0,
+        "avg_steps": 248.85,
+        "avg_return": -2.3863749934462404
+      }
+    },
+    "Hard (n_obs=12)": {
+      "ppo": {
+        "episodes": 200,
+        "success_rate": 0.865,
+        "collision_rate": 0.015,
+        "avg_steps": 65.865,
+        "avg_return": 10.340688684185483
+      },
+      "baseline": {
+        "episodes": 200,
+        "success_rate": 0.0,
+        "collision_rate": 0.0,
+        "avg_steps": 250.0,
+        "avg_return": -2.4509950892248953
+      }
+    }
+  }
+}
