@@ -75,6 +75,7 @@ class ObstacleAvoidEnv(gym.Env):
         w_max=2.0,
         max_steps=250,
         goal_radius=0.25,
+        reward_mode="full",
     ):
         super().__init__()
         self.rng = np.random.default_rng(seed)
@@ -89,6 +90,7 @@ class ObstacleAvoidEnv(gym.Env):
         self.w_max = float(w_max)
         self.max_steps = int(max_steps)
         self.goal_r = float(goal_radius)
+        self.reward_mode = str(reward_mode)
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
 
         obs_dim = self.n_rays + 2 + 2 + 2
@@ -164,6 +166,9 @@ class ObstacleAvoidEnv(gym.Env):
         self.prev_goal_dist = float(np.linalg.norm(self.goal - self.pos))
         obs = self._get_obs()
         info = {}
+        #
+        self.traj = [self.pos.copy()]
+        #
         return obs, info
 
     def _lidar(self):
@@ -252,24 +257,42 @@ class ObstacleAvoidEnv(gym.Env):
         self.pos[1] += float(v * math.sin(self.theta) * self.dt)
         self.theta = wrap_pi(self.theta + float(w * self.dt))
 
+        # Ensure trajectory buffer exists (safety)
+        if not hasattr(self, "traj"):
+            self.traj = [self.pos.copy()]
+
         collided = self._check_collision()
         goal_dist = float(np.linalg.norm(self.goal - self.pos))
         reached = goal_dist < self.goal_r
         truncated = self.step_count >= self.max_steps
         terminated = collided or reached
 
+        # Reward (supports ablation via self.reward_mode)
         progress = float(self.prev_goal_dist - goal_dist)
-        r = 1.0 * progress
-        r += -0.01
+        r = 0.0
+
+        # 1) progress shaping (distance-to-goal)
+        if self.reward_mode != "no_progress":
+            r += 1.0 * progress
+
+        # 2) small time penalty to discourage stalling
+        if self.reward_mode != "no_time":
+            r += -0.01
+
+        # 3) small spin penalty
         r += -0.001 * abs(float(w))
+
         if reached:
             r += 10.0
         if collided:
-            r += -10.0
+            r += -2.0 if self.reward_mode == "weak_collision" else -10.0
 
         self.prev_goal_dist = goal_dist
         obs = self._get_obs()
         info = {"goal_dist": goal_dist, "reached": reached, "collided": collided}
+        #
+        self.traj.append(self.pos.copy())
+
         return obs, float(r), bool(terminated), bool(truncated), info
 
     def render(self):
@@ -289,15 +312,24 @@ class ObstacleAvoidEnv(gym.Env):
         ax.set_xticks([])
         ax.set_yticks([])
 
+        # obstacles
         for c, r in self.obstacles:
             ax.add_patch(Circle((c[0], c[1]), r, fill=False))
 
+        # goal
         ax.add_patch(Circle((self.goal[0], self.goal[1]), self.goal_r, fill=False))
+
+        # robot
         ax.add_patch(Circle((self.pos[0], self.pos[1]), self.robot_r, fill=False))
 
         hx = self.pos[0] + self.robot_r * 1.5 * math.cos(self.theta)
         hy = self.pos[1] + self.robot_r * 1.5 * math.sin(self.theta)
         ax.plot([self.pos[0], hx], [self.pos[1], hy])
+
+        if hasattr(self, "traj") and len(self.traj) > 1:
+            xs = [p[0] for p in self.traj]
+            ys = [p[1] for p in self.traj]
+            ax.plot(xs, ys, linewidth=1.5, alpha=0.8)
 
         fig.canvas.draw()
 
