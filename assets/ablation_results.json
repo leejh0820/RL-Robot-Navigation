@@ -1,0 +1,58 @@
+[
+  {
+    "map": "Easy (n_obs=8)",
+    "setting": "full",
+    "success_rate": 0.895,
+    "collision_rate": 0.0,
+    "avg_steps": 62.15
+  },
+  {
+    "map": "Hard (n_obs=12)",
+    "setting": "full",
+    "success_rate": 0.84,
+    "collision_rate": 0.005,
+    "avg_steps": 71.94
+  },
+  {
+    "map": "Easy (n_obs=8)",
+    "setting": "no_progress",
+    "success_rate": 0.955,
+    "collision_rate": 0.005,
+    "avg_steps": 51.135
+  },
+  {
+    "map": "Hard (n_obs=12)",
+    "setting": "no_progress",
+    "success_rate": 0.915,
+    "collision_rate": 0.035,
+    "avg_steps": 51.655
+  },
+  {
+    "map": "Easy (n_obs=8)",
+    "setting": "weak_collision",
+    "success_rate": 0.935,
+    "collision_rate": 0.04,
+    "avg_steps": 43.93
+  },
+  {
+    "map": "Hard (n_obs=12)",
+    "setting": "weak_collision",
+    "success_rate": 0.905,
+    "collision_rate": 0.075,
+    "avg_steps": 43.08
+  },
+  {
+    "map": "Easy (n_obs=8)",
+    "setting": "no_time",
+    "success_rate": 0.91,
+    "collision_rate": 0.005,
+    "avg_steps": 58.815
+  },
+  {
+    "map": "Hard (n_obs=12)",
+    "setting": "no_time",
+    "success_rate": 0.905,
+    "collision_rate": 0.025,
+    "avg_steps": 54.415
+  }
+]
