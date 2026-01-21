@@ -6,9 +6,9 @@ from stable_baselines3.common.monitor import Monitor
 from env import ObstacleAvoidEnv
 
 
-def make_env(seed=0):
+def make_env(seed=0, n_obs=8, reward_mode="full"):
     def _thunk():
-        env = ObstacleAvoidEnv(seed=seed)
+        env = ObstacleAvoidEnv(seed=seed, n_obs=n_obs, reward_mode=reward_mode)
         return Monitor(env)
 
     return _thunk
@@ -17,20 +17,35 @@ def make_env(seed=0):
 if __name__ == "__main__":
     os.makedirs("checkpoints", exist_ok=True)
 
-    env = DummyVecEnv([make_env(0)])
+    experiments = [
+        ("full", "full"),
+        ("no_progress", "no_progress"),
+        ("weak_collision", "weak_collision"),
+        ("no_time", "no_time"),
+    ]
 
-    model = PPO(
-        "MlpPolicy",
-        env,
-        verbose=1,
-        n_steps=2048,
-        batch_size=256,
-        gamma=0.99,
-        learning_rate=3e-4,
-        ent_coef=0.0,
-        clip_range=0.2,
-    )
+    seed = 0
+    n_obs = 8
+    total_timesteps = 250_000
 
-    model.learn(total_timesteps=250_000)
-    model.save("checkpoints/ppo_nav")
-    print("[OK] saved -> checkpoints/ppo_nav.zip")
+    for exp_name, reward_mode in experiments:
+        print(f"\n=== Training: {exp_name} (reward_mode={reward_mode}) ===")
+
+        env = DummyVecEnv([make_env(seed=seed, n_obs=n_obs, reward_mode=reward_mode)])
+
+        model = PPO(
+            "MlpPolicy",
+            env,
+            verbose=1,
+            n_steps=2048,
+            batch_size=256,
+            gamma=0.99,
+            learning_rate=3e-4,
+            ent_coef=0.0,
+            clip_range=0.2,
+        )
+
+        model.learn(total_timesteps=total_timesteps)
+        save_path = f"checkpoints/ppo_{exp_name}"
+        model.save(save_path)
+        print(f"[OK] saved -> {save_path}.zip")
